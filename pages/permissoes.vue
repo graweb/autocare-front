@@ -119,14 +119,7 @@
 export default {
   data() {
     return {
-      headers: [
-        { text: "PLACA", value: "plate" },
-        { text: "MARCA", value: "brand" },
-        { text: "MODELO", value: "model" },
-        { text: "COR", value: "color" },
-        { text: "ANO", value: "year" },
-        { text: "VERSÃO", value: "version" },
-      ],
+      headers: [{ text: "PERMISSÃO", value: "name" }],
       search: "",
       items: [],
       selectedItems: [],
@@ -142,7 +135,7 @@ export default {
         id: 0,
         name: "",
       },
-      nameRules: [(v) => !!v || "Informe o nome do veículo"],
+      nameRules: [(v) => !!v || "Informe o nome da permissão"],
     };
   },
 
@@ -150,7 +143,7 @@ export default {
     this.loading = true;
 
     await this.$axios
-      .get(process.env.apiUrl + "vehicles")
+      .get(process.env.apiUrl + "permissions")
       .then((res) => {
         this.selectedItems = [];
         this.data = {};
@@ -169,11 +162,11 @@ export default {
     openModal() {
       this.selectedItems = [];
       this.data.id = 0;
-      (this.modalTitle = "Novo Veículo"), (this.dialog = true);
+      (this.modalTitle = "Nova Permissão"), (this.dialog = true);
     },
 
     editDialog() {
-      (this.modalTitle = "Editar Veículo"),
+      (this.modalTitle = "Editar Permissão"),
         (this.editedIndex = this.items.indexOf(this.selectedItems));
       this.data = Object.assign({}, this.selectedItems[0]);
       this.dialog = true;
@@ -188,38 +181,38 @@ export default {
       if (this.$refs.form.validate()) {
         if (this.data.id == 0) {
           await this.$axios
-            .post(process.env.apiUrl + "vehicles", {
-              name: this.data.name,
-            })
-            .then(() => {
-              this.dialog = false;
-              this.snackbarText = "Veículo registrado com sucesso!";
-              this.snackbarColor = "success";
-              this.showSnackbar = true;
-              this.$fetch();
-            })
-            .catch(function (err) {
-              this.snackbarText = err;
-              this.snackbarColor = "error";
-              this.showSnackbar = true;
-            });
+          .post(process.env.apiUrl + "permissions", {
+            name: this.data.name,
+          })
+          .then(() => {
+            this.dialog = false;
+            this.snackbarText = "Permissão registrada com sucesso!";
+            this.snackbarColor = "success";
+            this.showSnackbar = true;
+            this.$fetch();
+          })
+          .catch(function (err) {
+            this.snackbarText = err;
+            this.snackbarColor = "error";
+            this.showSnackbar = true;
+          });
         } else {
           await this.$axios
-            .put(process.env.apiUrl + "vehicles/" + this.data.id, {
-              name: this.data.name,
-            })
-            .then(() => {
-              this.dialog = false;
-              this.snackbarText = "Veículo atualizado com sucesso!";
-              this.snackbarColor = "success";
-              this.showSnackbar = true;
-              this.$fetch();
-            })
-            .catch(function (err) {
-              this.snackbarText = err;
-              this.snackbarColor = "error";
-              this.showSnackbar = true;
-            });
+          .put(process.env.apiUrl + "permissions/" + this.data.id, {
+            name: this.data.name,
+          })
+          .then(() => {
+            this.dialog = false;
+            this.snackbarText = "Permissão atualizada com sucesso!";
+            this.snackbarColor = "success";
+            this.showSnackbar = true;
+            this.$fetch();
+          })
+          .catch(function (err) {
+            this.snackbarText = err;
+            this.snackbarColor = "error";
+            this.showSnackbar = true;
+          });
         }
       }
     },
@@ -228,11 +221,11 @@ export default {
       for (var i = 0; i < this.selectedItems.length; i++) {
         this.$axios
           .delete(
-            process.env.apiUrl + "vehicles/" + this.selectedItems[i].id
+            process.env.apiUrl + "permissions/" + this.selectedItems[i].id
           )
           .then(() => {
             this.dialogRemove = false;
-            this.snackbarText = "Veículo removido com sucesso!";
+            this.snackbarText = "Permissão removida com sucesso!";
             this.snackbarColor = "success";
             this.showSnackbar = true;
             this.$fetch();

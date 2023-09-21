@@ -48,14 +48,8 @@
 </template>
 
 <script>
-import SnackBar from "@/components/SnackBar.vue";
-
 export default {
   layout: "guest",
-
-  components: {
-    SnackBar,
-  },
 
   data: () => ({
     email: "",

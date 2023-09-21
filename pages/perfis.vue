@@ -62,18 +62,40 @@
             <span class="text-h5">{{ modalTitle }}</span>
           </v-card-title>
           <v-card-text>
-            <v-container>
-              <v-row>
-                <v-col cols="12" sm="6" md="12">
-                  <v-text-field
-                    v-model="data.name"
-                    label="Permissão:"
-                    :rules="nameRules"
-                    required
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <v-row>
+              <v-col cols="12" sm="6" md="12">
+                <v-text-field
+                  v-model="data.name"
+                  label="Permissão:"
+                  :rules="nameRules"
+                  required
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="12">
+                <v-simple-table>
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">PERMISSÃO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in permissions" :key="item.id">
+                        <td>
+                          <v-switch
+                            v-model="item.checked"
+                            inset
+                            :label="`${item.name}`"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </v-col>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -119,17 +141,11 @@
 export default {
   data() {
     return {
-      headers: [
-        { text: "PLACA", value: "plate" },
-        { text: "MARCA", value: "brand" },
-        { text: "MODELO", value: "model" },
-        { text: "COR", value: "color" },
-        { text: "ANO", value: "year" },
-        { text: "VERSÃO", value: "version" },
-      ],
+      headers: [{ text: "PERFIL", value: "name" }],
       search: "",
       items: [],
       selectedItems: [],
+      permissions: [],
       loading: false,
       showSnackbar: false,
       snackbarText: "",
@@ -142,7 +158,7 @@ export default {
         id: 0,
         name: "",
       },
-      nameRules: [(v) => !!v || "Informe o nome do veículo"],
+      nameRules: [(v) => !!v || "Informe o nome do perfil"],
     };
   },
 
@@ -150,7 +166,7 @@ export default {
     this.loading = true;
 
     await this.$axios
-      .get(process.env.apiUrl + "vehicles")
+      .get(process.env.apiUrl + "roles")
       .then((res) => {
         this.selectedItems = [];
         this.data = {};
@@ -163,17 +179,31 @@ export default {
         this.snackbarColor = "error";
         this.showSnackbar = true;
       });
+
+    this.getPermissions();
   },
 
   methods: {
+    async getPermissions() {
+      await this.$axios.get(process.env.apiUrl + "permissions").then((res) => {
+        this.permissions = res.data.map((item) => ({
+          ...item,
+          checked: this.hasPermission(item),
+        }));
+      });
+    },
+
+    hasPermission(permission) {
+    },
+
     openModal() {
       this.selectedItems = [];
       this.data.id = 0;
-      (this.modalTitle = "Novo Veículo"), (this.dialog = true);
+      (this.modalTitle = "Novo Perfil"), (this.dialog = true);
     },
 
     editDialog() {
-      (this.modalTitle = "Editar Veículo"),
+      (this.modalTitle = "Editar Perfil"),
         (this.editedIndex = this.items.indexOf(this.selectedItems));
       this.data = Object.assign({}, this.selectedItems[0]);
       this.dialog = true;
@@ -188,12 +218,12 @@ export default {
       if (this.$refs.form.validate()) {
         if (this.data.id == 0) {
           await this.$axios
-            .post(process.env.apiUrl + "vehicles", {
+            .post(process.env.apiUrl + "roles", {
               name: this.data.name,
             })
             .then(() => {
               this.dialog = false;
-              this.snackbarText = "Veículo registrado com sucesso!";
+              this.snackbarText = "Perfil registrado com sucesso!";
               this.snackbarColor = "success";
               this.showSnackbar = true;
               this.$fetch();
@@ -205,12 +235,12 @@ export default {
             });
         } else {
           await this.$axios
-            .put(process.env.apiUrl + "vehicles/" + this.data.id, {
+            .put(process.env.apiUrl + "roles/" + this.data.id, {
               name: this.data.name,
             })
             .then(() => {
               this.dialog = false;
-              this.snackbarText = "Veículo atualizado com sucesso!";
+              this.snackbarText = "Perfil atualizado com sucesso!";
               this.snackbarColor = "success";
               this.showSnackbar = true;
               this.$fetch();
@@ -227,12 +257,10 @@ export default {
     saveDelete() {
       for (var i = 0; i < this.selectedItems.length; i++) {
         this.$axios
-          .delete(
-            process.env.apiUrl + "vehicles/" + this.selectedItems[i].id
-          )
+          .delete(process.env.apiUrl + "roles/" + this.selectedItems[i].id)
           .then(() => {
             this.dialogRemove = false;
-            this.snackbarText = "Veículo removido com sucesso!";
+            this.snackbarText = "Perfil removido com sucesso!";
             this.snackbarColor = "success";
             this.showSnackbar = true;
             this.$fetch();

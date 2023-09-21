@@ -67,9 +67,39 @@
                 <v-col cols="12" sm="6" md="12">
                   <v-text-field
                     v-model="data.name"
-                    label="Permissão:"
+                    label="Nome:"
                     :rules="nameRules"
                     required
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="12">
+                  <v-text-field
+                    v-model="data.email"
+                    label="E-mail:"
+                    :rules="emailRules"
+                    required
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-autocomplete
+                    v-model="data.role"
+                    :items="roles"
+                    label="Perfil"
+                    item-text="name"
+                    item-value="id"
+                    return-object
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="data.password"
+                    :counter="10"
+                    label="Senha"
+                    :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    :type="showPassword ? 'text' : 'password'"
+                    @click:append="showPassword = !showPassword"
+                    required
+                    :rules="passwordRules"
                   />
                 </v-col>
               </v-row>
@@ -120,16 +150,14 @@ export default {
   data() {
     return {
       headers: [
-        { text: "PLACA", value: "plate" },
-        { text: "MARCA", value: "brand" },
-        { text: "MODELO", value: "model" },
-        { text: "COR", value: "color" },
-        { text: "ANO", value: "year" },
-        { text: "VERSÃO", value: "version" },
+        { text: "NOME", value: "name" },
+        { text: "E-MAIL", value: "email" },
+        { text: "PERFIL", value: "role.name" },
       ],
       search: "",
       items: [],
       selectedItems: [],
+      roles: [],
       loading: false,
       showSnackbar: false,
       snackbarText: "",
@@ -138,11 +166,24 @@ export default {
       dialogRemove: false,
       editedIndex: -1,
       modalTitle: "",
+      showPassword: false,
       data: {
         id: 0,
+        role: [],
+        email: "",
+        password: "",
         name: "",
       },
-      nameRules: [(v) => !!v || "Informe o nome do veículo"],
+      nameRules: [(v) => !!v || "Informe o nome do usuário"],
+      emailRules: [
+        (v) => !!v || "E-mail é obrigatório.",
+        (v) => /.+@.+\..+/.test(v) || "Digite um e-mail válido.",
+      ],
+      passwordRules: [
+        (v) => !!v || "Senha é obrigatório.",
+        (v) =>
+          (v && v.length <= 10) || "A senha deve ter no máximo 10 caracteres.",
+      ],
     };
   },
 
@@ -150,7 +191,7 @@ export default {
     this.loading = true;
 
     await this.$axios
-      .get(process.env.apiUrl + "vehicles")
+      .get(process.env.apiUrl + "users")
       .then((res) => {
         this.selectedItems = [];
         this.data = {};
@@ -163,17 +204,25 @@ export default {
         this.snackbarColor = "error";
         this.showSnackbar = true;
       });
+
+    this.getRoles();
   },
 
   methods: {
+    async getRoles() {
+      await this.$axios.get(process.env.apiUrl + "roles").then((res) => {
+        this.roles = res.data;
+      });
+    },
+
     openModal() {
       this.selectedItems = [];
       this.data.id = 0;
-      (this.modalTitle = "Novo Veículo"), (this.dialog = true);
+      (this.modalTitle = "Novo Usuário"), (this.dialog = true);
     },
 
     editDialog() {
-      (this.modalTitle = "Editar Veículo"),
+      (this.modalTitle = "Editar Usuário"),
         (this.editedIndex = this.items.indexOf(this.selectedItems));
       this.data = Object.assign({}, this.selectedItems[0]);
       this.dialog = true;
@@ -188,12 +237,15 @@ export default {
       if (this.$refs.form.validate()) {
         if (this.data.id == 0) {
           await this.$axios
-            .post(process.env.apiUrl + "vehicles", {
+            .post(process.env.apiUrl + "users", {
+              role: this.data.role,
               name: this.data.name,
+              email: this.data.email,
+              password: this.data.password,
             })
             .then(() => {
               this.dialog = false;
-              this.snackbarText = "Veículo registrado com sucesso!";
+              this.snackbarText = "Usuário registrado com sucesso!";
               this.snackbarColor = "success";
               this.showSnackbar = true;
               this.$fetch();
@@ -205,12 +257,15 @@ export default {
             });
         } else {
           await this.$axios
-            .put(process.env.apiUrl + "vehicles/" + this.data.id, {
+            .put(process.env.apiUrl + "users/" + this.data.id, {
+              role: this.data.role,
               name: this.data.name,
+              email: this.data.email,
+              password: this.data.password,
             })
             .then(() => {
               this.dialog = false;
-              this.snackbarText = "Veículo atualizado com sucesso!";
+              this.snackbarText = "Usuário atualizado com sucesso!";
               this.snackbarColor = "success";
               this.showSnackbar = true;
               this.$fetch();
@@ -227,12 +282,10 @@ export default {
     saveDelete() {
       for (var i = 0; i < this.selectedItems.length; i++) {
         this.$axios
-          .delete(
-            process.env.apiUrl + "vehicles/" + this.selectedItems[i].id
-          )
+          .delete(process.env.apiUrl + "users/" + this.selectedItems[i].id)
           .then(() => {
             this.dialogRemove = false;
-            this.snackbarText = "Veículo removido com sucesso!";
+            this.snackbarText = "Usuário removido com sucesso!";
             this.snackbarColor = "success";
             this.showSnackbar = true;
             this.$fetch();

@@ -8,7 +8,17 @@
     transition="scale-transition"
   >
     {{ snackbarText }}
-    <v-btn color="white" text @click="closeSnackbar">Fechar</v-btn>
+
+    <template v-slot:action="{ attrs }">
+      <v-btn
+        color="white"
+        text
+        v-bind="attrs"
+        @click="closeSnackbar"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </template>
   </v-snackbar>
 </template>
 
